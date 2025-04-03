@@ -1,7 +1,7 @@
 # BlockAdmin
 > A Minecraft server managment application.
 
-<img src="img/interface.png" alt="Interface">
+<img src="img/interface.gif" alt="Interface">
 
 
 ## Requirements
