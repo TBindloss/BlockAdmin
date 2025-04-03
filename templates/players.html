@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BlockAdmin - Players</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code&display=swap" rel="stylesheet">
+    <link href="/static/style.css" rel="stylesheet">
+    <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg mb-4">
+        <div class="container-fluid">
+            <a class="navbar-brand d-flex align-items-center" href="/">
+                <i class="fas fa-cube me-2 text-primary"></i>
+                <span class="fw-bold bahover">BlockAdmin</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarContent">
+                <div class="navbar-nav ms-auto d-flex align-items-center">
+                    <a href="/" class="nav-item btn btn-outline-primary btn-sm me-2 mb-2 mb-lg-0">
+                        <i class="fas fa-home me-1"></i>Home
+                    </a>
+                    <a href="/players" class="nav-item btn btn-outline-primary btn-sm me-2 mb-2 mb-lg-0 active">
+                        <i class="fas fa-users me-1"></i>Players
+                    </a>
+                    <a href="/admin" class="nav-item btn btn-outline-primary btn-sm me-2 mb-2 mb-lg-0">
+                        <i class="fas fa-gear me-1"></i>Admin
+                    </a>
+                    <a href="https://github.com/TBindloss/BlockAdmin/issues" 
+                       class="nav-item btn btn-outline-primary btn-sm me-2 mb-2 mb-lg-0"
+                       target="_blank">
+                        <i class="fas fa-bug me-1"></i>Issues
+                    </a>
+                    <div class="theme-toggle me-2 mb-2 mb-lg-0">
+                        <label class="theme-switch">
+                            <input type="checkbox" id="theme-toggle">
+                            <span class="slider">
+                                <i class="fas fa-sun sun"></i>
+                                <i class="fas fa-moon moon"></i>
+                            </span>
+                        </label>
+                    </div>
+                    <a href="/logout" class="nav-item btn btn-outline-danger btn-sm mb-2 mb-lg-0">
+                        <i class="fas fa-sign-out-alt me-1"></i>Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-2">
+        <div class="minecraft-header text-center mb-4">
+            <h1><i class="fas fa-users me-2"></i>Player Management</h1>
+            <p class="lead text-muted">Manage connected players and player actions</p>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-user-friends me-2"></i>Connected Players
+                    </div>
+                    <div class="card-body">
+                        <div id="players-list" class="players-grid">
+                            <!-- Players will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-user-shield me-2"></i>Player Actions
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-primary" onclick="refreshPlayers()">
+                                <i class="fas fa-sync me-1"></i>Refresh Players
+                            </button>
+                            <button class="btn btn-warning" onclick="whitelistManager()">
+                                <i class="fas fa-list me-1"></i>Manage Whitelist
+                            </button>
+                            <button class="btn btn-danger" onclick="banManager()">
+                                <i class="fas fa-ban me-1"></i>Manage Bans
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Sticky Footer -->
+    <footer>
+        <div class="container text-center">
+            <span class="text-muted">
+                <i class="far fa-copyright"></i> 2025 Tom Bindloss - GPL v3 | 
+                <span class="mx-2">Version 1.0</span> | 
+                <a href="mailto:tom@tombindloss.co.uk?subject=BlockAdmin%20query" class="text-decoration-none">
+                    Contact me
+                </a>
+            </span>
+        </div>
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Theme toggle functionality (same as index.html)
+        const themeToggle = document.getElementById('theme-toggle');
+        const htmlElement = document.documentElement;
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        htmlElement.setAttribute('data-theme', savedTheme);
+        themeToggle.checked = savedTheme === 'dark';
+        
+        themeToggle.addEventListener('change', function() {
+            if (this.checked) {
+                htmlElement.setAttribute('data-theme', 'dark');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                htmlElement.setAttribute('data-theme', 'light');
+                localStorage.setItem('theme', 'light');
+            }
+        });
+
+        // Player management functions
+        function createPlayerCard(player) {
+            return `
+                <div class="player-card">
+                    <div class="d-flex align-items-center">
+                        <div class="player-avatar me-3">
+                            <img src="https://minotar.net/avatar/${player.name}/100.png" alt="${player.name}" />
+                        </div>
+                        <div class="player-info flex-grow-1">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div>
+                                    <h5 class="mb-1">${player.name}</h5>
+                                    <small class="text-muted">
+                                        <i class="fas fa-clock me-1"></i>${player.connectionTime}
+                                    </small>
+                                </div>
+                                <div class="btn-group btn-group-sm">
+                                    <button class="btn btn-primary" onclick="messagePlayer('${player.name}')" data-bs-toggle="tooltip" data-bs-title="Send Message">
+                                        <i class="fas fa-comment"></i>
+                                    </button>
+                                    <button class="btn btn-success" onclick="toggleOP('${player.name}')" data-bs-toggle="tooltip" data-bs-title="Toggle Operator Status">
+                                        <i class="fas fa-star"></i>
+                                    </button>
+                                    <button class="btn btn-warning" onclick="kickPlayer('${player.name}')" data-bs-toggle="tooltip" data-bs-title="Kick Player">
+                                        <i class="fas fa-sign-out-alt"></i>
+                                    </button>
+                                    <button class="btn btn-danger" onclick="banPlayer('${player.name}')" data-bs-toggle="tooltip" data-bs-title="Ban Player">
+                                        <i class="fas fa-ban"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Initialize tooltips
+        function initTooltips() {
+            const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+            const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+        }
+
+        // Update the updatePlayersList function to reinitialize tooltips
+        function updatePlayersList(players) {
+            const container = document.getElementById('players-list');
+            if (!players || players.length === 0) {
+                container.innerHTML = '<div class="text-center text-muted p-4">No players currently connected</div>';
+                return;
+            }
+            container.innerHTML = players.map(player => createPlayerCard(player)).join('');
+            initTooltips();
+        }
+
+        function refreshPlayers() {
+            fetch('/api/status')
+                .then(response => response.json())
+                .then(data => {
+                    if (data && data.players && Array.isArray(data.players)) {
+                        // Transform the players data to include all required fields
+                        const formattedPlayers = data.players.map(player => ({
+                            name: player.name || 'Unknown',
+                            connectionTime: formatConnectionTime(player.connectionTime),
+                            ip: player.ip || 'Hidden'
+                        }));
+                        updatePlayersList(formattedPlayers);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching players:', error);
+                    updatePlayersList([]);
+                });
+        }
+
+        // Add helper function to format connection time
+        function formatConnectionTime(timestamp) {
+            if (!timestamp) return 'Unknown';
+            
+            const now = Date.now();
+            const connectedTime = now - timestamp;
+            const minutes = Math.floor(connectedTime / 60000);
+            const hours = Math.floor(minutes / 60);
+            
+            if (hours > 0) {
+                return `${hours}h ${minutes % 60}m`;
+            }
+            return `${minutes}m`;
+        }
+
+        // Player action functions
+        function messagePlayer(player) {
+            const message = prompt(`Enter message for ${player}:`);
+            if (message) {
+                fetch('/api/run_command', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ command: `tell ${player} ${message}` })
+                });
+            }
+        }
+
+        function toggleOP(player) {
+            if (confirm(`Toggle OP status for ${player}?`)) {
+                fetch('/api/run_command', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ command: `op ${player}` })
+                });
+            }
+        }
+
+        function kickPlayer(player) {
+            const reason = prompt(`Enter kick reason for ${player}:`) || 'Kicked by admin';
+            if (confirm(`Kick ${player}?\nReason: ${reason}`)) {
+                fetch('/api/run_command', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ command: `kick ${player} ${reason}` })
+                });
+            }
+        }
+
+        function banPlayer(player) {
+            const reason = prompt(`Enter ban reason for ${player}:`) || 'Banned by admin';
+            if (confirm(`Ban ${player}?\nReason: ${reason}`)) {
+                fetch('/api/run_command', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ command: `ban ${player} ${reason}` })
+                });
+            }
+        }
+
+        function whitelistManager() {
+            fetch('/api/run_command', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ command: 'whitelist list' })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Show whitelist dialog
+                const action = prompt(
+                    `Current whitelist:\n${data.output}\n\n` +
+                    "Enter command:\n" +
+                    "1. add <player> - Add player to whitelist\n" +
+                    "2. remove <player> - Remove player from whitelist\n" +
+                    "3. on - Enable whitelist\n" +
+                    "4. off - Disable whitelist"
+                );
+
+                if (action) {
+                    fetch('/api/run_command', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ command: `whitelist ${action}` })
+                    });
+                }
+            });
+        }
+
+        function banManager() {
+            fetch('/api/run_command', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ command: 'banlist' })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Show ban list dialog
+                const action = prompt(
+                    `Current bans:\n${data.output}\n\n` +
+                    "Enter command:\n" +
+                    "1. ban <player> [reason] - Ban a player\n" +
+                    "2. pardon <player> - Unban a player\n" +
+                    "3. banip <player|ip> - Ban an IP\n" +
+                    "4. pardon-ip <ip> - Unban an IP"
+                );
+
+                if (action) {
+                    const [cmd, ...args] = action.split(' ');
+                    fetch('/api/run_command', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ command: `${cmd} ${args.join(' ')}` })
+                    });
+                }
+            });
+        }
+
+        // Refresh players list periodically
+        refreshPlayers();
+        setInterval(refreshPlayers, 5000);
+
+        // Initial tooltip initialization
+        initTooltips();
+    </script>
+</body>
+</html>

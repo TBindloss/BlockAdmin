@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BlockAdmin Admin</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code&display=swap" rel="stylesheet">
+    <link href="/static/style.css" rel="stylesheet">
+    <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg mb-4">
+        <div class="container-fluid">
+            <a class="navbar-brand d-flex align-items-center" href="/">
+                <i class="fas fa-cube me-2 text-primary"></i>
+                <span class="fw-bold bahover">BlockAdmin</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarContent">
+                <div class="navbar-nav ms-auto d-flex align-items-center">
+                    <a href="/" class="nav-item btn btn-outline-primary btn-sm me-2 mb-2 mb-lg-0">
+                        <i class="fas fa-home me-1"></i>Home
+                    </a>
+                    <a href="/players" class="nav-item btn btn-outline-primary btn-sm me-2 mb-2 mb-lg-0">
+                        <i class="fas fa-users me-1"></i>Players
+                    </a>
+                    <a href="/admin" class="nav-item btn btn-outline-primary btn-sm me-2 mb-2 mb-lg-0 active">
+                        <i class="fas fa-gear me-1"></i>Admin
+                    </a>
+                    <a href="https://github.com/TBindloss/BlockAdmin/issues" 
+                       class="nav-item btn btn-outline-primary btn-sm me-2 mb-2 mb-lg-0"
+                       target="_blank">
+                        <i class="fas fa-bug me-1"></i>Issues
+                    </a>
+                    <div class="theme-toggle me-2 mb-2 mb-lg-0">
+                        <label class="theme-switch">
+                            <input type="checkbox" id="theme-toggle">
+                            <span class="slider">
+                                <i class="fas fa-sun sun"></i>
+                                <i class="fas fa-moon moon"></i>
+                            </span>
+                        </label>
+                    </div>
+                    <a href="/logout" class="nav-item btn btn-outline-danger btn-sm mb-2 mb-lg-0">
+                        <i class="fas fa-sign-out-alt me-1"></i>Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-2">
+        <div class="minecraft-header text-center mb-4">
+            <h1><i class="fas fa-gear me-2"></i>Server Administration</h1>
+            <p class="lead text-muted">Configure your Minecraft server settings</p>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <div class="card">
+                    <div class="card-header d-flex align-items-center">
+                        <i class="fas fa-sliders me-2"></i>RCON Configuration
+                    </div>
+                    <div class="card-body">
+                        <form id="rconForm" method="POST" action="{{ url_for('save_rcon_config') }}">
+                            <div class="mb-3">
+                                <label for="rcon_host" class="form-label">RCON Host</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-server"></i></span>
+                                    <input type="text" 
+                                        class="form-control" 
+                                        id="rcon_host" 
+                                        name="rcon_host" 
+                                        value="{{ config.RCON_HOST if config else '' }}" 
+                                        placeholder="localhost"
+                                        required>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="rcon_port" class="form-label">RCON Port</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-network-wired"></i></span>
+                                    <input type="number" 
+                                        class="form-control" 
+                                        id="rcon_port" 
+                                        name="rcon_port" 
+                                        value="{{ config.RCON_PORT if config else '' }}" 
+                                        placeholder="25575"
+                                        required>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="rcon_password" class="form-label">RCON Password</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                    <input type="password" 
+                                        class="form-control" 
+                                        id="rcon_password" 
+                                        name="rcon_password" 
+                                        value="{{ config.RCON_PASSWORD if config else '' }}" 
+                                        required>
+                                </div>
+                            </div>
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-1"></i> Save Configuration
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header d-flex align-items-center">
+                        <i class="fas fa-user-shield me-2"></i>Admin Password Configuration
+                    </div>
+                    <div class="card-body">
+                        <form id="adminPasswordForm" method="POST" action="{{ url_for('save_admin_config') }}">
+                            <div class="mb-3">
+                                <label for="admin_password" class="form-label">New Admin Password</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-key"></i></span>
+                                    <input type="password" 
+                                        class="form-control" 
+                                        id="admin_password" 
+                                        name="admin_password" 
+                                        placeholder="Enter new admin password"
+                                        required>
+                                </div>
+                                <div class="form-text">
+                                    <i class="fas fa-info-circle me-1"></i>This password is used to log into the admin panel
+                                </div>
+                            </div>
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-1"></i> Update Admin Password
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header d-flex align-items-center">
+                        <i class="fas fa-info-circle me-2"></i>Configuration Help
+                    </div>
+                    <div class="card-body">
+                        <h5>About RCON</h5>
+                        <p>RCON (Remote Console) allows you to connect to your Minecraft server and execute commands remotely.</p>
+                        
+                        <h5>How to Configure</h5>
+                        <ul>
+                            <li><strong>Host:</strong> The IP address or hostname of your Minecraft server (use "localhost" if running on the same machine)</li>
+                            <li><strong>Port:</strong> The RCON port specified in your server.properties file (default: 25575)</li>
+                            <li><strong>Password:</strong> The RCON password specified in your server.properties file</li>
+                        </ul>
+                        
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i> Make sure to enable RCON in your server.properties file by setting <code>enable-rcon=true</code>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Sticky Footer -->
+    <footer>
+        <div class="container text-center">
+            <span class="text-muted">
+                <i class="far fa-copyright"></i> 2025 Tom Bindloss - GPL v3 | 
+                <span class="mx-2">Version 1.0</span> | 
+                <a href="mailto:tom@tombindloss.co.uk?subject=BlockAdmin%20query" class="text-decoration-none">
+                    Contact me
+                </a>
+            </span>
+        </div>
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Theme toggle functionality
+        const themeToggle = document.getElementById('theme-toggle');
+        const htmlElement = document.documentElement;
+        
+        // Check if user has a saved theme preference
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        htmlElement.setAttribute('data-theme', savedTheme);
+        themeToggle.checked = savedTheme === 'dark';
+        
+        // Toggle theme when switch is clicked
+        themeToggle.addEventListener('change', function() {
+            if (this.checked) {
+                htmlElement.setAttribute('data-theme', 'dark');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                htmlElement.setAttribute('data-theme', 'light');
+                localStorage.setItem('theme', 'light');
+            }
+        });
+
+        // Form submission handling with spinner
+        document.getElementById('rconForm').addEventListener('submit', function(e) {
+            const submitBtn = this.querySelector('button[type="submit"]');
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Saving...';
+            submitBtn.disabled = true;
+            
+            // Wait for form submission and redirect
+            setTimeout(() => {
+                window.location.href = '/';
+            }, 2000);
+        });
+    </script>
+</body>
+</html>

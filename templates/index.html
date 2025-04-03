@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BlockAdmin</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code&display=swap" rel="stylesheet">
+    <link href="/static/style.css" rel="stylesheet">
+    <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg mb-4">
+        <div class="container-fluid">
+            <a class="navbar-brand d-flex align-items-center" href="/">
+                <i class="fas fa-cube me-2 text-primary"></i>
+                <span class="fw-bold bahover">BlockAdmin</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarContent">
+                <div class="navbar-nav ms-auto d-flex align-items-center">
+                    <a href="/" class="nav-item btn btn-outline-primary btn-sm me-2 mb-2 mb-lg-0 active">
+                        <i class="fas fa-home me-1"></i>Home
+                    </a>
+                    <a href="/players" class="nav-item btn btn-outline-primary btn-sm me-2 mb-2 mb-lg-0">
+                        <i class="fas fa-users me-1"></i>Players
+                    </a>
+                    <a href="/admin" class="nav-item btn btn-outline-primary btn-sm me-2 mb-2 mb-lg-0">
+                        <i class="fas fa-gear me-1"></i>Admin
+                    </a>
+                    <a href="https://github.com/TBindloss/BlockAdmin/issues" 
+                       class="nav-item btn btn-outline-primary btn-sm me-2 mb-2 mb-lg-0"
+                       target="_blank">
+                        <i class="fas fa-bug me-1"></i>Issues
+                    </a>
+                    <div class="theme-toggle me-2 mb-2 mb-lg-0">
+                        <label class="theme-switch">
+                            <input type="checkbox" id="theme-toggle">
+                            <span class="slider">
+                                <i class="fas fa-sun sun"></i>
+                                <i class="fas fa-moon moon"></i>
+                            </span>
+                        </label>
+                    </div>
+                    <a href="/logout" class="nav-item btn btn-outline-danger btn-sm mb-2 mb-lg-0">
+                        <i class="fas fa-sign-out-alt me-1"></i>Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+    <div class="container py-2">
+        <div class="minecraft-header text-center mb-4">
+            <h1><i class="fas fa-cube me-2"></i>BlockAdmin</h1>
+            <p class="lead text-muted">Minecraft Server Control Panel</p>
+        </div>
+
+        <div class="row">
+            <!-- Main Console Section -->
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <div><i class="fas fa-terminal me-2"></i>Console Output</div>
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-outline-neutral" onclick="clearConsole()">
+                                <i class="fas fa-broom me-1"></i>Clear
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="console-container card">
+                            <div class="card-body">
+                                <div id="consoleOutput" class="console-output">
+                                    {% for entry in command_history %}
+                                    <div class="console-entry">
+                                        <div class="command-line">
+                                            <span class="timestamp">[{{ entry.timestamp }}]</span>
+                                            <span class="command">{{ entry.command }}</span>
+                                        </div>
+                                        {% if entry.response %}
+                                        <div class="response">{{ entry.response }}</div>
+                                        {% endif %}
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                <form id="commandForm" class="mt-3">
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-chevron-right"></i></span>
+                                        <input type="text" class="form-control" id="commandInput" placeholder="Enter command..." autocomplete="off">
+                                        <button class="btn btn-success" type="submit">
+                                            <i class="fas fa-paper-plane me-1"></i> Run
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex flex-wrap" id="quickCommands">
+                            <button class="btn btn-sm btn-outline-neutral quick-command" onclick="setCommand('list')">list players</button>
+                            <button class="btn btn-sm btn-outline-neutral quick-command" onclick="setCommand('time set day')">set day</button>
+                            <button class="btn btn-sm btn-outline-neutral quick-command" onclick="setCommand('time set night')">set night</button>
+                            <button class="btn btn-sm btn-outline-neutral quick-command" onclick="setCommand('weather clear')">clear weather</button>
+                            <button class="btn btn-sm btn-outline-neutral quick-command" onclick="setCommand('difficulty peaceful')">peaceful mode</button>
+                            <button class="btn btn-sm btn-outline-neutral quick-command" onclick="setCommand('help')">help</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-server me-2"></i>Server Information
+                    </div>
+                    <div class="card-body" id="serverInfo">
+                        <div class="server-info">
+                            <h3>Server Status</h3>
+                            <div id="status-display">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p><i class="fas fa-circle me-2" id="status-indicator"></i>Status: <span id="server-status" class="status-offline">Checking...</span></p>
+                                        <p><i class="fas fa-network-wired me-2"></i>Server IP: <span id="server-ip" class="server-ip">Loading...</span> 
+                                            <button class="btn btn-sm btn-outline-secondary" onclick="copyIP()" title="Copy IP">
+                                                <i class="fas fa-copy"></i>
+                                            </button>
+                                        </p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p><i class="fas fa-users me-2"></i>Players Online: <span id="player-count">0</span></p>
+                                        <p><i class="fas fa-clock me-2"></i>WebApp Uptime: <span id="server-uptime">0:00:00</span></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sidebar with tools and history -->
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-wrench me-2"></i>Server Actions
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-warning" onclick="confirmCommand('save-all')">
+                                <i class="fas fa-save me-1"></i> Save World
+                            </button>
+                            <button class="btn btn-danger" onclick="confirmCommand('stop')">
+                                <i class="fas fa-power-off me-1"></i> Stop Server
+                            </button>
+                            <button class="btn btn-primary" onclick="setCommand('reload')">
+                                <i class="fas fa-sync me-1"></i> Reload Server
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <div><i class="fas fa-history me-2"></i>Command History</div>
+                        <button class="btn btn-sm history-clear-btn btn-outline-neutral" onclick="clearHistory()">
+                            <i class="fas fa-trash me-1"></i>Clear
+                        </button>
+                    </div>
+                    <div class="card-body p-0">
+                        <div id="commandHistory" class="command-history" style="max-height: 200px; overflow-y: auto;">
+                            <!-- Command history will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-info-circle me-2"></i>Help
+                    </div>
+                    <div class="card-body">
+                        <p class="small">Type <code>help</code> for a list of available commands.</p>
+                        <p class="small">Use <code>teleport [player] [x] [y] [z]</code> to teleport players.</p>
+                        <a href="https://minecraft.fandom.com/wiki/Commands" target="_blank" class="btn btn-sm btn-primary w-100">
+                            <i class="fas fa-external-link-alt me-1"></i> Commands Wiki
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Sticky Footer -->
+    <footer>
+        <div class="container text-center">
+            <span class="text-muted">
+                <i class="far fa-copyright"></i> 2025 Tom Bindloss - GPL v3 | 
+                <span class="mx-2">Version 1.0</span> | 
+                <a href="mailto:tom@tombindloss.co.uk?subject=BlockAdmin%20query" class="text-decoration-none">
+                    Contact me
+                </a>
+            </span>
+        </div>
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Theme toggle functionality
+        const themeToggle = document.getElementById('theme-toggle');
+        const htmlElement = document.documentElement;
+        
+        // Check if user has a saved theme preference
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        htmlElement.setAttribute('data-theme', savedTheme);
+        themeToggle.checked = savedTheme === 'dark';
+        
+        // Toggle theme when switch is clicked
+        themeToggle.addEventListener('change', function() {
+            if (this.checked) {
+                htmlElement.setAttribute('data-theme', 'dark');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                htmlElement.setAttribute('data-theme', 'light');
+                localStorage.setItem('theme', 'light');
+            }
+        });
+        
+        // Store command history in local storage
+        let commandHistory = JSON.parse(localStorage.getItem('mcCommandHistory')) || [];
+        
+        // Function to add a command to history
+        function addToHistory(command) {
+            if (command && command.trim() !== '') {
+                commandHistory = commandHistory.filter(cmd => cmd !== command);
+                
+                // Add to beginning of array
+                commandHistory.unshift(command);
+                
+                // Keep only the last 10 commands
+                if (commandHistory.length > 10) {
+                    commandHistory.pop();
+                }
+                
+                // Save to local storage
+                localStorage.setItem('mcCommandHistory', JSON.stringify(commandHistory));
+                
+                // Update display
+                updateHistoryDisplay();
+            }
+        }
+        
+        // Update the history display
+        function updateHistoryDisplay() {
+            const historyContainer = document.getElementById('commandHistory');
+            historyContainer.innerHTML = '';
+            
+            commandHistory.forEach(cmd => {
+                const item = document.createElement('div');
+                item.className = 'command-history-item';
+                item.textContent = cmd;
+                item.onclick = () => setCommand(cmd);
+                historyContainer.appendChild(item);
+            });
+            
+            // Show "No history" if empty
+            if (commandHistory.length === 0) {
+                const item = document.createElement('div');
+                item.className = 'p-3 text-center text-muted';
+                item.textContent = 'No command history';
+                historyContainer.appendChild(item);
+            }
+        }
+        
+        // Set a command in the input field
+        function setCommand(command) {
+            document.getElementById('commandInput').value = command;
+            document.getElementById('commandInput').focus();
+        }
+        
+        // Ask for confirmation before running dangerous commands
+        function confirmCommand(command) {
+            if (confirm(`Are you sure you want to run: ${command}?`)) {
+                setCommand(command);
+                document.getElementById('commandForm').submit();
+            }
+        }
+        
+        // Auto-scroll console to bottom
+        function scrollConsoleToBottom() {
+            const consoleOutput = document.getElementById('consoleOutput');
+            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+        }
+        
+        // Clear console output
+        function clearConsole() {
+            if (confirm('Clear console output? This will remove all command history.')) {
+                document.getElementById('consoleOutput').innerHTML = 
+                    '<div class="console-entry"><span class="console-timestamp">[System]</span><span class="console-command">Console cleared.</span></div>';
+            }
+        }
+        
+        // Clear command history
+        function clearHistory() {
+            if (confirm('Clear command history?')) {
+                commandHistory = [];
+                localStorage.removeItem('mcCommandHistory');
+                updateHistoryDisplay();
+            }
+        }
+        
+        // Format uptime
+        function formatUptime(seconds) {
+            seconds = Math.floor(seconds);
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        // Update server status indicator color
+        function updateStatusIndicator(status) {
+            const indicator = document.getElementById('status-indicator');
+            if (status === 'online') {
+                indicator.classList.add('text-success');
+                indicator.classList.remove('text-danger', 'text-warning');
+            } else if (status === 'offline') {
+                indicator.classList.add('text-danger');
+                indicator.classList.remove('text-success', 'text-warning');
+            } else {
+                indicator.classList.add('text-warning');
+                indicator.classList.remove('text-success', 'text-danger');
+            }
+        }
+
+        function updateServerStatus() {
+            fetch('/api/status')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (!data) {
+                        throw new Error('Empty response from server');
+                    }
+
+                    // Update status
+                    const statusElement = document.getElementById('server-status');
+                    statusElement.textContent = data.online ? 'Online' : 'Offline';
+                    statusElement.className = data.online ? 'status-online' : 'status-offline';
+                    updateStatusIndicator(data.online ? 'online' : 'offline');
+
+                    // Update server info only if we have valid data
+                    if (data.server_ip) {
+                        document.getElementById('server-ip').textContent = data.server_ip;
+                    }
+
+                    // Update player count and list
+                    const players = data.players || [];
+                    const playerCount = Array.isArray(players) ? players.length : 0;
+                    document.getElementById('player-count').textContent = playerCount;
+
+                    // Update uptime if available
+                    const uptime = parseInt(data.uptime) || 0;
+                    document.getElementById('server-uptime').textContent = formatUptime(uptime);
+                })
+                .catch(error => {
+                    console.error('Error fetching server status:', error.message);
+                    const statusElement = document.getElementById('server-status');
+                    statusElement.textContent = 'Connection Error';
+                    statusElement.className = 'status-error';
+                    updateStatusIndicator('error');
+                    
+                    // Show more specific error messages
+                    document.getElementById('server-ip').textContent = 'Server unavailable';
+                    document.getElementById('server-uptime').textContent = '--:--:--';
+                    document.getElementById('player-count').textContent = '--';
+                });
+        }
+
+        function copyIP() {
+            const ipElement = document.getElementById('server-ip');
+            const ip = ipElement.textContent;
+            navigator.clipboard.writeText(ip).then(() => {
+                // Visual feedback that IP was copied
+                const button = ipElement.nextElementSibling;
+                button.innerHTML = '<i class="fas fa-check"></i>';
+                setTimeout(() => {
+                    button.innerHTML = '<i class="fas fa-copy"></i>';
+                }, 2000);
+            });
+        }
+
+        // Run when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Display command history
+            updateHistoryDisplay();
+            
+            // Scroll console to bottom
+            scrollConsoleToBottom();
+            
+            // Add command to history on form submit
+            document.getElementById('commandForm').addEventListener('submit', function() {
+                const commandInput = document.getElementById('commandInput');
+                addToHistory(commandInput.value);
+            });
+        });
+
+        // Update status every 3 seconds
+        setInterval(updateServerStatus, 3000);
+        // Initial update
+        updateServerStatus();
+
+        document.getElementById('commandForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const commandInput = document.getElementById('commandInput');
+            const command = commandInput.value.trim();
+            
+            if (command) {
+                try {
+                    const response = await fetch('/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: `command=${encodeURIComponent(command)}`
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        
+                        // Add command to history
+                        addToHistory(command);
+                        
+                        // Add command to console output without clearing previous entries
+                        const consoleOutput = document.getElementById('consoleOutput');
+                        const newEntry = document.createElement('div');
+                        newEntry.className = 'console-entry';
+                        newEntry.innerHTML = `
+                            <div class="command-line">
+                                <span class="timestamp">[${data.timestamp}]</span>
+                                <span class="command">${data.command}</span>
+                            </div>
+                            <div class="response">${data.response}</div>
+                        `;
+                        
+                        consoleOutput.appendChild(newEntry);
+                        scrollConsoleToBottom();
+                        
+                        // Clear input
+                        commandInput.value = '';
+                    }
+                } catch (error) {
+                    console.error('Error executing command:', error);
+                }
+            }
+        });
+
+        // Add function to clear console
+        function clearConsole() {
+            if (confirm('Are you sure you want to clear the console history?')) {
+                const consoleOutput = document.getElementById('consoleOutput');
+                consoleOutput.innerHTML = '';
+                command_history = [];
+            }
+        }
+    </script>
+</body>
+</html>
