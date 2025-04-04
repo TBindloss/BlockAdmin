@@ -16,6 +16,7 @@
     --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     --card-bg: #ffffff;
     --header-bg: rgba(255, 255, 255, 0.8);
+    --update-banner: #f59e0b;
   }
   
   /* Dark theme variables */
@@ -36,6 +37,7 @@
     --shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     --card-bg: #1e293b;
     --header-bg: rgba(15, 23, 42, 0.8);
+    --update-banner: #c21e1e;
   }
   
   html {
@@ -593,6 +595,29 @@
     line-height: 60px;
     background-color: var(--bs-light);
     border-top: 1px solid var(--bs-border-color);
+  }
+
+  /* Update banner styles */
+  .update-banner {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: var(--update-banner);
+    color: var(--text-primary);
+    padding: 10px 20px;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    z-index: 1000;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+  }
+
+  .version-info {
+    font-family: 'Fira Code', monospace;
+    font-size: 0.9em;
   }
 
   /* Responsive adjustments */

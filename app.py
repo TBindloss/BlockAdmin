@@ -11,6 +11,10 @@ import requests
 from typing import Dict, List
 import json
 import signal
+import requests
+
+CURRENT_VERSION = "1.02"
+GITHUB_VERSION_URL = "https://github.com/TBindloss/BlockAdmin/blob/main/version.txt"
 
 load_dotenv()
 app = Flask(__name__)
@@ -405,6 +409,25 @@ def get_seed():
             return jsonify({"success": True, "seed": seed_value})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}) 
+    
+@app.route('/api/version')
+def check_version():
+    try:
+        response = requests.get(GITHUB_VERSION_URL)
+        latest_version = response.text.strip()
+        
+        return jsonify({
+            'current_version': CURRENT_VERSION,
+            'latest_version': latest_version,
+            'update_available': latest_version != CURRENT_VERSION
+        })
+    except Exception as e:
+        return jsonify({
+            'current_version': CURRENT_VERSION,
+            'latest_version': 'unknown',
+            'update_available': False
+        })
+
 if __name__ == "__main__":
     # Start the monitoring thread
     monitor_thread = threading.Thread(target=monitor_server, daemon=True)

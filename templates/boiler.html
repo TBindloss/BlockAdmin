@@ -72,7 +72,7 @@
             <div class="container text-center">
                 <span class="text-muted">
                     <i class="far fa-copyright"></i> 2025 Tom Bindloss - GPL v3 | 
-                    <span class="mx-2">Version 1.01</span> | 
+                    <span class="mx-2">Version 1.02</span> | 
                     <a href="mailto:tom@tombindloss.co.uk?subject=BlockAdmin%20query" class="text-decoration-none">
                         Contact me
                     </a>
@@ -86,5 +86,14 @@
         {% if script_name %}
         <script src="{{ url_for('static', filename='js/' + script_name) }}"></script>
         {% endif %}
+        <div id="update-banner" class="update-banner" style="display: none;">
+            <span class="me-2"><i class="fas fa-exclamation-circle"></i> A new version is available!</span>
+            <span class="version-info me-2">Current: v<span id="currentVersion">1.02</span> | Latest: v<span id="latestVersion"></span></span>
+            <a href="https://github.com/TBindloss/BlockAdmin/releases" target="_blank" class="btn btn-sm btn-primary me-2">
+                <i class="fas fa-download me-1"></i>Update Now
+            </a>
+            <button type="button" class="btn-close" id="close-update-banner" aria-label="Close"></button>
+        </div>
+        <script src="{{ url_for('static', filename='js/update.js') }}"></script>
     </body>
     </html>
