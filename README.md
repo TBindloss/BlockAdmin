@@ -11,7 +11,9 @@
 
 
 ## Installation
-Run the following commands:
+Download the latest release and extract the zip file to a directory of your choosing. 
+
+Alternatively, Run the following commands:
 ``` bash
 git clone https://github.com/TBindloss/BlockAdmin.git
 ```
