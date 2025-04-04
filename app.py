@@ -88,7 +88,7 @@ def login_required(f):
 @app.route('/players')
 @login_required
 def players():
-    return render_template('players.html')
+    return render_template('players.html', script_name='players.js')
 
 # Store server status information
 server_status = {
@@ -209,7 +209,7 @@ def index():
                     'response': str(e)
                 })
     
-    return render_template("index.html", command_history=command_history)
+    return render_template("index.html", command_history=command_history, script_name='index.js')
 
 
 @app.route("/clear_history", methods=["POST"])
@@ -346,7 +346,7 @@ def toggle_op():
 @login_required
 def admin():
     config = load_config()
-    return render_template('admin.html', config=config)
+    return render_template('admin.html', config=config, script_name='admin.js')
 
 @app.route('/save_rcon_config', methods=['POST'])
 @login_required
@@ -392,6 +392,19 @@ def save_admin_config():
         
     return redirect(url_for('index'))
 
+@app.route("/api/get_seed", methods=["GET"])
+@login_required
+def get_seed():
+    try:
+        with get_rcon_connection() as mcr:
+            seed_output = mcr.command("seed")
+            # Extract the seed value from the output and remove brackets
+            seed_value = seed_output.split(":")[-1].strip()
+            # Remove any brackets from the seed
+            seed_value = seed_value.replace("[", "").replace("]", "")
+            return jsonify({"success": True, "seed": seed_value})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}) 
 if __name__ == "__main__":
     # Start the monitoring thread
     monitor_thread = threading.Thread(target=monitor_server, daemon=True)
